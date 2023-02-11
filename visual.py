@@ -2,6 +2,9 @@
 import turtle
 from datetime import datetime
 from random import randint
+import pprint
+from checkers.game import Game
+
 
 gameTitle = "pyCheckers v4.17"
 
@@ -9,6 +12,8 @@ gameTitle = "pyCheckers v4.17"
 wn = turtle.Screen()
 wn.tracer(0,0)
 wn.title(gameTitle)
+
+AUTOPLAY = [1]
 
 #checks to see if coordinates (x, y) are on the board
 def onGrid(x,y):
@@ -32,12 +37,14 @@ class checkers:
     #create game instance
     def __init__(self,screen):
         self.screen = screen
+        self.game = Game()
         self.resetGame()
-        self.createTitles()
+        # self.createTitles()
 
     #resets the matrix that stores game data
     def resetGame(self):
-        self.turn = randint(1,2)
+        # self.turn = randint(1,2)
+        self.turn = self.game.whose_turn()
         logToConsole("\tStarting Player: %s" % (self.turn))
         self.createGrid()
 
@@ -79,8 +86,20 @@ class checkers:
         if(onGrid(x,y) == True):
             logToConsole("Mouse Event at coords (%s,%s)" % (x,y))
 
+            if self.turn in AUTOPLAY:  # we should move for them
+                # find state of board
+                pprint.pprint(self.game.board.position_layout.items())
+
+                # find capture moves or other possible moves
+
+                # evaluate them
+
+                # select one
+                pprint.pprint(self.matrix)
+                self.endTurn()
+
             #if grid clicked contains a pawn and the current player it, highlight it's possible moves
-            if((self.matrix[x][y].pawn == True) and (self.matrix[x][y].player == self.turn)):
+            elif((self.matrix[x][y].pawn == True) and (self.matrix[x][y].player == self.turn)):
                 if(self.spaceSelected != 0):
                     self.deselectAll()
                 moves = self.findMoves(x,y)
@@ -290,6 +309,9 @@ class grid(turtle.RawTurtle):
         self.pawn = False #True if there is a pawn on the grid space
         self.player = 0 #1 if pawn is player1 (red), 2 if pawn is player2 (blue)
         self.king = False #True if pawn has been kinged
+
+    def __repr__(self):
+        return f"({self.gridX}, {self.gridY}) {self.player}"
 
     #removes the pawn from the grid
     def clearPawn(self):
