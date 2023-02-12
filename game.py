@@ -38,21 +38,17 @@ def player_icon(piece):
 
 def display_board(game, move=None):
     highlight = lowlight = None
-    if move:
-        print(move)
-        # highlight the source and destination squares
+    if move:  # highlight the source and destination squares
         highlight = move[1]
         lowlight = move[0]
         start = bcolors.OKRED
         end = bcolors.ENDC
-        start = end = ""
-        print("h: ", highlight)
 
-    line = ""
     if not game.is_over():
         print(f"Player {KINGS[game.whose_turn()]}'s turn")
 
     count = 0
+    line = ""
     for row in positions:
         line = ""
         for position in row:
@@ -90,6 +86,7 @@ def get_min_max(player=None, moves=None, recurse=True):
         player = game.whose_turn()
     if moves is None:
         moves = game.get_possible_moves()
+
     # create new temporary board for each move
     scores_dict = {}
     for idx, move in enumerate(moves):
@@ -100,13 +97,19 @@ def get_min_max(player=None, moves=None, recurse=True):
         searcher.build(temp_board)
 
         # number of pieces in jeapody after move
-        jeopardy = []
+        """
+        jeopardised = {1: 0, 2: 0}
+        capture_moves = False
         for capture_move in temp_board.get_possible_capture_moves():
-            # print("move: ", move)
-            if capture_move[0] not in jeopardy:
-                jeopardy.append(capture_move[0])
-            score += len(jeopardy) * JEOPARDY_VALUE
-            # print("in jeopardy: ", jeopardy)
+            aggressor = capture_move[0]
+            piece = temp_board.searcher.get_piece_by_position(aggressor)
+            jeopardised[piece.player] += 1
+            capture_moves = True
+
+        pprint.pprint(jeopardised)
+        score += (jeopardised[player] - jeopardised[1+player%2] ) * JEOPARDY_VALUE
+        print(jeopardised[player], jeopardised[1+player%2])
+        """
 
         position_forward = {1: [], 2: []}
         for piece in temp_board.searcher.uncaptured_pieces:
@@ -144,9 +147,11 @@ def get_min_max(player=None, moves=None, recurse=True):
         if not len(position_forward[piece.player]) or not len(position_forward[piece.other_player]):
             # print(position_forward, idx, move)
             return (None, move)  # MIN, MAX - this move is a winning move
+
         player_ave_position = sum(position_forward[piece.player]) / len(position_forward[piece.player])
         opp_ave_position = sum(position_forward[piece.other_player]) / len(position_forward[piece.other_player])
         score += round(player_ave_position - opp_ave_position)
+
         scores_dict[idx] = score
 
     # pprint.pprint(scores_dict)
