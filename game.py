@@ -70,15 +70,14 @@ def get_best_move():
 
         scores_dict[idx] = score
 
-    print("x")
-    pprint.pprint(scores_dict)
+    print("final: ", scores_dict)
     best_move = moves[max(scores_dict, key=scores_dict.get)]
     return best_move
 
 while not game.is_over():
 
     print_board()
-    print(game.get_possible_moves()) #[[9, 13], [9, 14], [10, 14], [10, 15], [11, 15], [11, 16], [12, 16]]
+    # print(game.get_possible_moves()) #[[9, 13], [9, 14], [10, 14], [10, 15], [11, 15], [11, 16], [12, 16]]
     move = get_best_move()
     print(f"moving player {game.whose_turn()} from {move[0]} to {move[1]}")
     game.move(move)  # [21, 17]
