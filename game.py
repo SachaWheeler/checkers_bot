@@ -2,10 +2,6 @@ from checkers.game import Game
 from checkers.board_searcher import BoardSearcher
 import pprint
 
-game = Game()
-print("Game started")
-GAME_MOVES = 0
-
 positions = [
     [29, None, 30, None, 31, None, 32, None],
     [None, 25, None, 26, None, 27, None, 28],
@@ -17,6 +13,20 @@ positions = [
     [None, 1, None, 2, None, 3, None, 4]
 ]
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    OKRED = '\033[31m'
+    OKYELLOW = '\033[33m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
+
 PAWNS = [None, 'o', 'x']
 KINGS = [None, 'O', 'X']
 
@@ -26,7 +36,18 @@ def player_icon(piece):
     else:
         return PAWNS[piece.player]
 
-def display_board(game):
+def display_board(game, move=None):
+    highlight = lowlight = None
+    if move:
+        print(move)
+        # highlight the source and destination squares
+        highlight = move[1]
+        lowlight = move[0]
+        start = bcolors.OKRED
+        end = bcolors.ENDC
+        start = end = ""
+        print("h: ", highlight)
+
     line = ""
     if not game.is_over():
         print(f"Player {KINGS[game.whose_turn()]}'s turn")
@@ -38,7 +59,15 @@ def display_board(game):
             if position:
                 count += 1
                 piece = game.board.searcher.get_piece_by_position(position)
-                line += f"({' ' if position < 10 else ''}{position}) {player_icon(piece) if piece else '_ '} "
+                line += f"({' ' if position < 10 else ''}{position}) "
+                if position == highlight:
+                    line += bcolors.OKRED
+                if position == lowlight:
+                    line += bcolors.OKYELLOW
+                line += f"{player_icon(piece) if piece else '_ '}"
+                if position in [highlight, lowlight]:
+                    line += bcolors.ENDC
+                line += " "
             else:
                 line += "   "
         print(line)
@@ -113,7 +142,7 @@ def get_min_max(player=None, moves=None, recurse=True):
 
         # position_forward
         if not len(position_forward[piece.player]) or not len(position_forward[piece.other_player]):
-            print(position_forward, idx, move)
+            # print(position_forward, idx, move)
             return (None, move)  # MIN, MAX - this move is a winning move
         player_ave_position = sum(position_forward[piece.player]) / len(position_forward[piece.player])
         opp_ave_position = sum(position_forward[piece.other_player]) / len(position_forward[piece.other_player])
@@ -139,25 +168,30 @@ def get_min_max(player=None, moves=None, recurse=True):
 
     return (move_min, move_max)
 
+game = Game()
+print("Game started")
+GAME_MOVES = 0
+
+move = None
 while not game.is_over():
 
-    display_board(game)
-    print(game.get_possible_moves()) #[[9, 13], [9, 14], [10, 14], [10, 15], [11, 15], [11, 16], [12, 16]]
+    display_board(game, move)
+    # print(game.get_possible_moves()) #[[9, 13], [9, 14], [10, 14], [10, 15], [11, 15], [11, 16], [12, 16]]
     move = get_max_move()
     if move:
-        print(f"moving player {game.whose_turn()} from {move[0]} to {move[1]}")
+        print(f"moving player {KINGS[game.whose_turn()]} from {move[0]} to {move[1]}")
         game.move(move)  # [21, 17]
         GAME_MOVES += 1
         print("--------------------------------------------------------------")
     else:
         print("game over")
-        display_board(game)
+        display_board(game, move)
         print(game.get_winner())
         break
 
     # x = input("hit a key for the next move") if x in ['x', 'q']: break
 display_board(game)
-print(f"Player {game.get_winner()} wins")
+print(f"Player {KINGS[game.get_winner()]} wins")
 
 GAME_STATS = f"""
     Game:
