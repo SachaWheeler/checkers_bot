@@ -4,6 +4,7 @@ import pprint
 
 game = Game()
 print("Game started")
+GAME_MOVES = 0
 
 positions = [
     [29, None, 30, None, 31, None, 32, None],
@@ -27,7 +28,8 @@ def player_icon(piece):
 
 def display_board(game):
     line = ""
-    print(f"Player {PAWNS[game.whose_turn()]}'s turn")
+    if not game.is_over():
+        print(f"Player {KINGS[game.whose_turn()]}'s turn")
 
     count = 0
     for row in positions:
@@ -102,14 +104,17 @@ def get_min_max(player=None, moves=None, recurse=True):
                     piece_row = 8 - piece_row
                 position_forward[piece.player].append(piece_row)
 
-            # pieces about to crown - penultimate row and an available move
-            if player == 1 and piece.position in [25, 26, 27, 28] and piece.is_movable() or \
-               player == 2 and piece.position in [ 5,  6,  7,  8] and piece.is_movable() or \
-               player == 1 and piece.position in [21, 22, 23, 24] and piece.get_possible_capture_moves() or \
-               player == 2 and piece.position in [ 9, 10, 11, 12] and piece.get_possible_capture_moves():
-                   score += factor * KING_VALUE
+                # pieces about to crown - penultimate row and an available move
+                if player == 1 and piece.position in [25, 26, 27, 28] and piece.is_movable() or \
+                    player == 2 and piece.position in [ 5,  6,  7,  8] and piece.is_movable() or \
+                    player == 1 and piece.position in [21, 22, 23, 24] and piece.get_possible_capture_moves() or \
+                    player == 2 and piece.position in [ 9, 10, 11, 12] and piece.get_possible_capture_moves():
+                        score += factor * KING_VALUE
 
         # position_forward
+        if not len(position_forward[piece.player]) or not len(position_forward[piece.other_player]):
+            print(position_forward, idx, move)
+            return (None, move)  # MIN, MAX - this move is a winning move
         player_ave_position = sum(position_forward[piece.player]) / len(position_forward[piece.player])
         opp_ave_position = sum(position_forward[piece.other_player]) / len(position_forward[piece.other_player])
         score += round(player_ave_position - opp_ave_position)
@@ -139,12 +144,32 @@ while not game.is_over():
     display_board(game)
     print(game.get_possible_moves()) #[[9, 13], [9, 14], [10, 14], [10, 15], [11, 15], [11, 16], [12, 16]]
     move = get_max_move()
-    print(f"moving player {game.whose_turn()} from {move[0]} to {move[1]}")
-    game.move(move)  # [21, 17]
-
-    x = input("hit a key for the next move")
-    if x in ['x', 'q']:
+    if move:
+        print(f"moving player {game.whose_turn()} from {move[0]} to {move[1]}")
+        game.move(move)  # [21, 17]
+        GAME_MOVES += 1
+        print("--------------------------------------------------------------")
+    else:
+        print("game over")
+        display_board(game)
+        print(game.get_winner())
         break
+
+    # x = input("hit a key for the next move") if x in ['x', 'q']: break
+display_board(game)
 print(f"Player {game.get_winner()} wins")
 
+GAME_STATS = f"""
+    Game:
+        number of turns: {GAME_MOVES}
+        winner         : {KINGS[game.get_winner()]}
+    """
+for player in [1, 2]:
+    GAME_STATS += f"""
+    Stats for {KINGS[player]}:
+        pieces: {len([pawn for pawn in game.board.searcher.get_pieces_by_player(player) if not pawn.king])}
+        kings: {len([pawn for pawn in game.board.searcher.get_pieces_by_player(player) if pawn.king])}
+
+    """
+print(GAME_STATS)
 exit(0)
