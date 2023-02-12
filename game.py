@@ -72,6 +72,7 @@ KING_VALUE = 3  # n x PAWN value (1)
 HOME_ROW_VALUE = 1
 CENTRE_16_VALUE = 1
 JEOPARDY_VALUE = -1.5
+FORWARD_VALUE = 1
 
 def get_max_move(player=None, moves=None, recurse=True):
     MIN, MAX = get_min_max(player, moves, recurse)
@@ -150,7 +151,7 @@ def get_min_max(player=None, moves=None, recurse=True):
 
         player_ave_position = sum(position_forward[piece.player]) / len(position_forward[piece.player])
         opp_ave_position = sum(position_forward[piece.other_player]) / len(position_forward[piece.other_player])
-        score += round(player_ave_position - opp_ave_position)
+        score += round(player_ave_position - opp_ave_position) * FORWARD_VALUE
 
         scores_dict[idx] = score
 
@@ -171,6 +172,7 @@ def get_min_max(player=None, moves=None, recurse=True):
     else:
         move_min = moves[min(scores_dict, key=scores_dict.get)]
 
+    print("min: ", move_min, "max: ", move_max)
     return (move_min, move_max)
 
 game = Game()
@@ -194,7 +196,9 @@ while not game.is_over():
         print(game.get_winner())
         break
 
-    # x = input("hit a key for the next move") if x in ['x', 'q']: break
+    x = input("hit a key for the next move")
+    if x in ['x', 'q']:
+        break
 display_board(game)
 print(f"Player {KINGS[game.get_winner()]} wins")
 
