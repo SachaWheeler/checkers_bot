@@ -46,17 +46,23 @@ HOME_ROW_VALUE = 1
 CENTRE_16_VALUE = 1
 JEOPARDY_VALUE = -1.5
 
-def get_best_move():
-    MIN, MAX = get_min_max()
+def get_max_move(player=None, moves=None, recurse=True):
+    MIN, MAX = get_min_max(player, moves, recurse)
     return MAX
 
-def get_min_max():
-    player = game.whose_turn()
-    moves = game.get_possible_moves()
+def get_min_move(player=None, moves=None, recurse=True):
+    MIN, MAX = get_min_max(player, moves, recurse)
+    return MIN
+
+def get_min_max(player=None, moves=None, recurse=True):
+    if player is None:
+        player = game.whose_turn()
+    if moves is None:
+        moves = game.get_possible_moves()
     # create new temporary board for each move
     scores_dict = {}
     for idx, move in enumerate(moves):
-
+        # for each proposed move
         score = 0
         temp_board = game.board.create_new_board_from_move(move)
         searcher = BoardSearcher()
@@ -65,13 +71,11 @@ def get_min_max():
         # number of pieces in jeapody after move
         jeopardy = []
         for capture_move in temp_board.get_possible_capture_moves():
-            print("move: ", move)
-            # print("agg: ", capture_move)
+            # print("move: ", move)
             if capture_move[0] not in jeopardy:
                 jeopardy.append(capture_move[0])
             score += len(jeopardy) * JEOPARDY_VALUE
-            print("in jeopardy: ", jeopardy)
-        # print(val, score
+            # print("in jeopardy: ", jeopardy)
 
         position_forward = {1: [], 2: []}
         for piece in temp_board.searcher.uncaptured_pieces:
@@ -91,42 +95,50 @@ def get_min_max():
             if piece.position in [10, 11, 14, 15, 18, 19, 22, 23]:
                 score += factor * CENTRE_16_VALUE
 
-            # average position forward
-            piece_row = int((piece.position-1)/4)
-            if piece.player is not player:
-                piece_row = 8 - piece_row
-            position_forward[piece.player].append(piece_row)
+            # average position forward of pawns
+            if not piece.king:
+                piece_row = int((piece.position-1)/4)
+                if piece.player is not player:
+                    piece_row = 8 - piece_row
+                position_forward[piece.player].append(piece_row)
 
             # pieces about to crown - penultimate row and an available move
-            if player == 1 and piece.position in [25, 26, 27, 28] or \
-               player == 2 and piece.position in [ 5,  6,  7,  8]:
-                if not piece.king and piece.is_movable():  # we can crown
-                    score += factor * KING_VALUE
+            if player == 1 and piece.position in [25, 26, 27, 28] and piece.is_movable() or \
+               player == 2 and piece.position in [ 5,  6,  7,  8] and piece.is_movable() or \
+               player == 1 and piece.position in [21, 22, 23, 24] and piece.get_possible_capture_moves() or \
+               player == 2 and piece.position in [ 9, 10, 11, 12] and piece.get_possible_capture_moves():
+                   score += factor * KING_VALUE
 
         # position_forward
-        player_ave = sum(position_forward[piece.player]) / len(position_forward[piece.player])
-        opp_ave = sum(position_forward[piece.other_player]) / len(position_forward[piece.other_player])
-        score += round(player_ave - opp_ave)
+        player_ave_position = sum(position_forward[piece.player]) / len(position_forward[piece.player])
+        opp_ave_position = sum(position_forward[piece.other_player]) / len(position_forward[piece.other_player])
+        score += round(player_ave_position - opp_ave_position)
         scores_dict[idx] = score
 
-    print("final: ")
-    pprint.pprint(scores_dict)
+    # pprint.pprint(scores_dict)
     max_id = max(scores_dict, key=scores_dict.get)
-    print("max: ", max_id, scores_dict[max_id], moves[max_id])
-    print("max moves: ", [idx for idx, value in scores_dict.items() if value == scores_dict[max_id]])
-    min_id = min(scores_dict, key=scores_dict.get)
-    print("min: ", min_id, scores_dict[min_id], moves[min_id])
-    print("min moves: ", [idx for idx, value in scores_dict.items() if value == scores_dict[min_id]])
+    max_moves = [moves[idx] for idx, value in scores_dict.items() if value == scores_dict[max_id]]
 
-    move_max = moves[max(scores_dict, key=scores_dict.get)]
-    move_min = moves[min(scores_dict, key=scores_dict.get)]
+    min_id = min(scores_dict, key=scores_dict.get)
+    min_moves = [moves[idx] for idx, value in scores_dict.items() if value == scores_dict[min_id]]
+
+    if len(max_moves) > 1 and recurse:  # should we go deeper
+        move_max = get_min_move(player=1+game.whose_turn()%2, moves=max_moves, recurse=False)
+    else:
+        move_max = moves[max(scores_dict, key=scores_dict.get)]
+
+    if len(min_moves) > 1 and recurse:  # should we go deeper
+        move_min = get_min_move(player=1+game.whose_turn()%2, moves=min_moves, recurse=False)
+    else:
+        move_min = moves[min(scores_dict, key=scores_dict.get)]
+
     return (move_min, move_max)
 
 while not game.is_over():
 
     display_board(game)
     print(game.get_possible_moves()) #[[9, 13], [9, 14], [10, 14], [10, 15], [11, 15], [11, 16], [12, 16]]
-    move = get_best_move()
+    move = get_max_move()
     print(f"moving player {game.whose_turn()} from {move[0]} to {move[1]}")
     game.move(move)  # [21, 17]
 
