@@ -16,6 +16,8 @@ CROWN = pygame.transform.scale(pygame.image.load('assets/crown.png'), (44, 25))
 CENTRE_16 = [2, 3, 4, 5]
 
 SIMPLE_STRATEGY = False
-SCORE_KING = 0.5
+
+SCORE_KING = 3
 SCORE_CENTRE16 = 0.5
-SCORE_FORWARD = 0.7
+SCORE_FORWARD = 0.3
+SCORE_HOME_ROW = 1

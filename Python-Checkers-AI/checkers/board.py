@@ -1,7 +1,7 @@
 import pygame
 from .constants import (BLACK, ROWS, RED, SQUARE_SIZE, COLS, WHITE,
                         CENTRE_16,
-                        SCORE_KING, SCORE_CENTRE16, SCORE_FORWARD,
+                        SCORE_KING, SCORE_CENTRE16, SCORE_FORWARD, SCORE_HOME_ROW,
                         SIMPLE_STRATEGY)
 from .piece import Piece
 import pprint
@@ -24,9 +24,9 @@ class Board:
             return self.white_left - self.red_left + (self.white_kings * SCORE_KING - self.red_kings * SCORE_KING)
         else:
             pawns_score = self.white_left - self.red_left                    # pawns
-            kings_score = (self.white_kings - self.red_kings) * SCORE_KING   # kings
-            centre16_score = 0
-            forward_score = 0
+            kings_score = pawns_score * SCORE_KING   # kings
+            centre16_score = forward_score = home_row_score = 0
+
             for row in self.board:  # position scores
                 for piece in row:
                     if piece != 0:
@@ -36,15 +36,18 @@ class Board:
                                 centre16_score += SCORE_CENTRE16
                             else:
                                 centre16_score -= SCORE_CENTRE16
-                        # forward scores
+                        # forward scores, and homerow score
                         if not piece.king:
                             if piece.color == WHITE:
-                                forward_score += SCORE_FORWARD
+                                forward_score += piece.row * SCORE_FORWARD
+                                if piece.row == 0:
+                                    home_row_score += SCORE_HOME_ROW
                             else:
-                                forward_score -= SCORE_FORWARD
+                                forward_score -= (7 - piece.row) * SCORE_FORWARD
+                                if piece.row == 7:
+                                    home_row_score -= SCORE_HOME_ROW
 
-
-            return pawns_score + kings_score + centre16_score + forward_score
+            return pawns_score + kings_score + centre16_score + forward_score + home_row_score
 
     def get_all_pieces(self, color):
         pieces = []
