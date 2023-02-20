@@ -22,9 +22,9 @@ class Board:
         PLAYER = WEIGHTS['PLAYER']
         FACTOR = -1 if PLAYER == RED else 1
 
-        pawns_score = (self.white_left - self.red_left) * 1 if PLAYER == WHITE else -1  # pawns
+        pawns_score = (self.white_left - self.white_kings) - (self.red_left - self.red_kings)
+        kings_score = (self.white_kings - self.red_kings) * WEIGHTS['KING']
 
-        kings_score = pawns_score * WEIGHTS['KING']            # kings
         centre16_score = forward_score = home_row_score = 0
 
         for row in self.board:  # position scores
@@ -46,12 +46,15 @@ class Board:
                         else:
                             forward_score -= row_id * WEIGHTS['FORWARD']
 
-                        # and homerow score
-                        if piece.row == 0 and piece.color == WHITE or piece.row == 7 and piece.color == RED:
-                            if PLAYER_PIECE:
-                                home_row_score += FACTOR * WEIGHTS['HOME']
-                            else:
-                                home_row_score -= FACTOR * WEIGHTS['HOME']
+                    # and homerow score
+                    if piece.row == 0 and piece.color == WHITE:
+                        home_row_score += WEIGHTS['HOME']
+                    elif piece.row == 7 and piece.color == RED:
+                        home_row_score -= WEIGHTS['HOME']
+
+        home_row_score *= FACTOR
+        pawns_score *= FACTOR
+        kings_score *= FACTOR
 
         pawns_score= float("{:.1f}".format(pawns_score))
         kings_score= float("{:.1f}".format(kings_score))
