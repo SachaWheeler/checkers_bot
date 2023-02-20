@@ -6,7 +6,7 @@ class Game:
     def __init__(self, win):
         self._init()
         self.win = win
-    
+
     def update(self):
         self.board.draw(self.win)
         self.draw_valid_moves(self.valid_moves)
@@ -30,13 +30,13 @@ class Game:
             if not result:
                 self.selected = None
                 self.select(row, col)
-        
+
         piece = self.board.get_piece(row, col)
         if piece != 0 and piece.color == self.turn:
             self.selected = piece
             self.valid_moves = self.board.get_valid_moves(piece)
             return True
-            
+
         return False
 
     def _move(self, row, col):
