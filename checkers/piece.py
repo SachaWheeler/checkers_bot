@@ -20,7 +20,7 @@ class Piece:
 
     def make_king(self):
         self.king = True
-    
+
     def draw(self, win):
         radius = SQUARE_SIZE//2 - self.PADDING
         pygame.draw.circle(win, GREY, (self.x, self.y), radius + self.OUTLINE)
@@ -34,4 +34,4 @@ class Piece:
         self.calc_pos()
 
     def __repr__(self):
-        return str(self.color)
+        return f"{self.color}: ({self.row}, {self.col})"

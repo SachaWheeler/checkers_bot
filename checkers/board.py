@@ -70,6 +70,7 @@ class Board:
         return pieces
 
     def move(self, piece, row, col):
+        # print(f"moving {piece} to ({row}, {col})")
         PIECE_IS_PAWN = not piece.king
         self.board[piece.row][piece.col], self.board[row][col] = self.board[row][col], self.board[piece.row][piece.col]
         piece.move(row, col)
@@ -98,6 +99,19 @@ class Board:
                         self.board[row].append(0)
                 else:
                     self.board[row].append(0)
+
+    def display(self):  # debugging board state
+        output = ""
+        for row in self.board:  # position scores
+            for piece in row:
+                if piece == 0:
+                    print(".", end='')
+                    continue
+                label = "r" if piece.color == RED else "w"
+                if piece.king:
+                    label = label.upper()
+                print(label, end='')
+            print("\n")
 
     def draw(self, win):
         self.draw_squares(win)
@@ -137,7 +151,8 @@ class Board:
             moves.update(self._traverse_left(row +1, min(row+3, ROWS), 1, piece.color, left))
             moves.update(self._traverse_right(row +1, min(row+3, ROWS), 1, piece.color, right))
 
-        # pprint.pprint(moves)
+        if moves:
+            pass # pprint.pprint(moves)
         return moves
 
     def _traverse_left(self, start, stop, step, color, left, skipped=[]):
