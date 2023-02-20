@@ -31,8 +31,9 @@ def log(f, text):
     print(text, end='')
     f.write(text)
 
-def log_name(f, WHITE_WEIGHTS, RED_WEIGHTS):
-     game_title = (f"WHITE:K_{WHITE_WEIGHTS['KING']}|"
+def log_name(f, playcount, WHITE_WEIGHTS, RED_WEIGHTS):
+     game_title = (f"{playcount} - "
+             f"WHITE:K_{WHITE_WEIGHTS['KING']}|"
              f"C_{WHITE_WEIGHTS['CENTRE']}|"
              f"F_{WHITE_WEIGHTS['FORWARD']}|"
              f"H_{WHITE_WEIGHTS['HOME']}"
@@ -52,3 +53,9 @@ def log_game_state(f, player, board):
             f"W: {board.white_left - board.white_kings} P, {board.white_kings} K\n"
             )
     log(f, game_state)
+
+def opponent(color):
+    if color == WHITE:
+        return "Red"
+    else:
+        return "White"

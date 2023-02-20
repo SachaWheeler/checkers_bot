@@ -5,7 +5,7 @@ import pygame
 from checkers.constants import (WIDTH, HEIGHT, SQUARE_SIZE, RED, WHITE,
                                 WEIGHTS_KING, WEIGHTS_CENTRE16, WEIGHTS_FORWARD, WEIGHTS_HOME_ROW,
                                 WEIGHTS_DICT,
-                                log, log_name, log_game_state)
+                                log, log_name, log_game_state, opponent)
 from checkers.game import Game
 from minimax.algorithm import minimax
 import pprint
@@ -20,13 +20,13 @@ def get_row_col_from_mouse(pos):
     col = x // SQUARE_SIZE
     return row, col
 
-def main(WHITE_WEIGHTS, RED_WEIGHTS, f):
+def main(play_count, WHITE_WEIGHTS, RED_WEIGHTS, f):
     run = True
     clock = pygame.time.Clock()
     WIN = pygame.display.set_mode((WIDTH, HEIGHT))
     game = Game(WIN)
 
-    log_name(f, WHITE_WEIGHTS, RED_WEIGHTS)
+    log_name(f, play_count, WHITE_WEIGHTS, RED_WEIGHTS)
     turns = 0
 
     prev_board = None
@@ -37,24 +37,27 @@ def main(WHITE_WEIGHTS, RED_WEIGHTS, f):
         # each turn
         turns += 1
         player = "White" if game.turn == WHITE else "Red"
+        opposing = opponent(game.turn)
         WEIGHTS = WHITE_WEIGHTS if game.turn == WHITE else RED_WEIGHTS
         value, new_board = minimax(game.get_board(), 4, True, game, WEIGHTS)
-        if new_board is None or game.winner() != None:
-            # game is over for player
-            print(f"game over: {player} wins")
-            log(f, f"{player} won after {turns} turns.")
+
+        if new_board is None:
+            # game is over for player with no available moves
+            log(f, f"{opposing} won after {turns} turns.\n")
             run = False
             break
-        game.ai_move(new_board)
-
-        prev_board = new_board
 
         if new_board is not None:
             log_game_state(f, game.turn, new_board)
 
+        game.ai_move(new_board)
+
+        prev_board = new_board
+
         if game.winner() != None:
-            print("x: ", game.winner())
+            log(f, f"{opposing} won after {turns} turns.\n")
             run = False
+            break
 
         if RED_WEIGHTS is None:  # human opponent
             for event in pygame.event.get():
@@ -80,6 +83,7 @@ i = 0
 while path.exists("logs/log%s.txt" % i):
     i += 1
 
+play_count = 0
 with open("logs/log%s.txt" % i, 'w') as f:
     for KING_WEIGHT in WEIGHTS_KING:
         for CENTRE_WEIGHT in WEIGHTS_CENTRE16:
@@ -91,14 +95,10 @@ with open("logs/log%s.txt" % i, 'w') as f:
                     RED_WEIGHTS['HOME'] = HOME_WEIGHT
                     RED_WEIGHTS['PLAYER'] = RED
 
-                    print("Red")
-                    pprint.pprint(RED_WEIGHTS)
-                    print("White")
-                    pprint.pprint(WHITE_WEIGHTS)
+                    play_count += 1
+                    main(play_count, WHITE_WEIGHTS, RED_WEIGHTS, f)
 
-                    main(WHITE_WEIGHTS, RED_WEIGHTS, f)
-
-                exit(0)
+exit(0)
 
 
 
