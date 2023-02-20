@@ -15,9 +15,14 @@ CROWN = pygame.transform.scale(pygame.image.load('assets/crown.png'), (44, 25))
 
 CENTRE_16 = [2, 3, 4, 5]
 
-SIMPLE_STRATEGY = False
+WEIGHTS_KING = [int(x/2 * 10) * 0.1 for x in range(4, 10)]  # 3 - [2.0, 2.5, 3.0, 3.5, 4.0, 4.5]
+WEIGHTS_CENTRE16 = [int(int(x * 10) * 0.1)/10 for x in range(1, 11)]  # 0.5
+WEIGHTS_FORWARD = [int(int(x * 10) * 0.1)/10 for x in range(1, 11)]  # 0.3
+WEIGHTS_HOME_ROW = [int(int(x*2 * 10) * 0.1)/10 for x in range(1, 11)]  # 1
 
-SCORE_KING = 3
-SCORE_CENTRE16 = 0.5
-SCORE_FORWARD = 0.3
-SCORE_HOME_ROW = 1
+WEIGHTS_DICT = {
+    'KING': 0,
+    'CENTRE': 0,
+    'FORWARD': 0,
+    'HOME': 0
+}

@@ -1,8 +1,6 @@
 import pygame
 from .constants import (BLACK, ROWS, RED, SQUARE_SIZE, COLS, WHITE,
-                        CENTRE_16,
-                        SCORE_KING, SCORE_CENTRE16, SCORE_FORWARD, SCORE_HOME_ROW,
-                        SIMPLE_STRATEGY)
+                        CENTRE_16)
 from .piece import Piece
 import pprint
 
@@ -19,14 +17,14 @@ class Board:
             for col in range(row % 2, COLS, 2):
                 pygame.draw.rect(win, RED, (row*SQUARE_SIZE, col *SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
 
-    def evaluate(self, STRATEGY):
-        # print(f"evaluating: {STRATEGY}")
-        PLAYER = STRATEGY['PLAYER']
+    def evaluate(self, WEIGHTS):
+        # print(f"evaluating: {WEIGHTS}")
+        PLAYER = WEIGHTS['PLAYER']
         FACTOR = -1 if PLAYER == RED else 1
 
         pawns_score = (self.white_left - self.red_left) * 1 if PLAYER == WHITE else -1  # pawns
 
-        kings_score = pawns_score * STRATEGY['KING']            # kings
+        kings_score = pawns_score * WEIGHTS['KING']            # kings
         centre16_score = forward_score = home_row_score = 0
 
         for row in self.board:  # position scores
@@ -36,24 +34,24 @@ class Board:
                     # CENTRE 16 scores
                     if piece.row in CENTRE_16 and piece.col in CENTRE_16:
                         if PLAYER_PIECE:
-                            centre16_score += STRATEGY['CENTRE']
+                            centre16_score += WEIGHTS['CENTRE']
                         else:
-                            centre16_score -= STRATEGY['CENTRE']
+                            centre16_score -= WEIGHTS['CENTRE']
 
                     # forward scores for pawns
                     if not piece.king:
                         row_id = piece.row if piece.color == WHITE else (7 - piece.row)
                         if PLAYER_PIECE:
-                            forward_score += row_id * STRATEGY['FORWARD']
+                            forward_score += row_id * WEIGHTS['FORWARD']
                         else:
-                            forward_score -= row_id * STRATEGY['FORWARD']
+                            forward_score -= row_id * WEIGHTS['FORWARD']
 
                         # and homerow score
                         if piece.row == 0 and piece.color == WHITE or piece.row == 7 and piece.color == RED:
                             if PLAYER_PIECE:
-                                home_row_score += FACTOR * STRATEGY['HOME']
+                                home_row_score += FACTOR * WEIGHTS['HOME']
                             else:
-                                home_row_score -= FACTOR * STRATEGY['HOME']
+                                home_row_score -= FACTOR * WEIGHTS['HOME']
 
         pawns_score= float("{:.1f}".format(pawns_score))
         kings_score= float("{:.1f}".format(kings_score))
