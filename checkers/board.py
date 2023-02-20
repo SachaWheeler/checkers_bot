@@ -1,89 +1,209 @@
-from copy import deepcopy
-from functools import reduce
-from .board_searcher import BoardSearcher
-from .board_initializer import BoardInitializer
+import pygame
+from .constants import (BLACK, ROWS, RED, SQUARE_SIZE, COLS, WHITE,
+                        CENTRE_16,
+                        SCORE_KING, SCORE_CENTRE16, SCORE_FORWARD, SCORE_HOME_ROW,
+                        SIMPLE_STRATEGY)
+from .piece import Piece
+import pprint
 
 class Board:
+    def __init__(self):
+        self.board = []
+        self.red_left = self.white_left = 12
+        self.red_kings = self.white_kings = 0
+        self.create_board()
 
-	def __init__(self):
-		self.player_turn = 1
-		self.width = 4
-		self.height = 8
-		self.position_count = self.width * self.height
-		self.rows_per_user_with_pieces = 3
-		self.position_layout = {}
-		self.piece_requiring_further_capture_moves = None
-		self.previous_move_was_capture = False
-		self.searcher = BoardSearcher()
-		BoardInitializer(self).initialize()
+    def draw_squares(self, win):
+        win.fill(BLACK)
+        for row in range(ROWS):
+            for col in range(row % 2, COLS, 2):
+                pygame.draw.rect(win, RED, (row*SQUARE_SIZE, col *SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
 
-	def count_movable_player_pieces(self, player_number = 1):
-		return reduce((lambda count, piece: count + (1 if piece.is_movable() else 0)), self.searcher.get_pieces_by_player(player_number), 0)
+    def evaluate(self, STRATEGY):
+        # print(f"evaluating: {STRATEGY}")
+        PLAYER = STRATEGY['PLAYER']
+        FACTOR = -1 if PLAYER == RED else 1
 
-	def get_possible_moves(self):
-		capture_moves = self.get_possible_capture_moves()
+        pawns_score = (self.white_left - self.red_left) * 1 if PLAYER == WHITE else -1  # pawns
 
-		return capture_moves if capture_moves else self.get_possible_positional_moves()
+        kings_score = pawns_score * STRATEGY['KING']            # kings
+        centre16_score = forward_score = home_row_score = 0
 
-	def get_possible_capture_moves(self):
-		return reduce((lambda moves, piece: moves + piece.get_possible_capture_moves()), self.searcher.get_pieces_in_play(), [])
+        for row in self.board:  # position scores
+            for piece in row:
+                if piece != 0:
+                    PLAYER_PIECE = piece.color == PLAYER
+                    # CENTRE 16 scores
+                    if piece.row in CENTRE_16 and piece.col in CENTRE_16:
+                        if PLAYER_PIECE:
+                            centre16_score += STRATEGY['CENTRE']
+                        else:
+                            centre16_score -= STRATEGY['CENTRE']
 
-	def get_possible_positional_moves(self):
-		return reduce((lambda moves, piece: moves + piece.get_possible_positional_moves()), self.searcher.get_pieces_in_play(), [])
+                    # forward scores for pawns
+                    if not piece.king:
+                        row_id = piece.row if piece.color == WHITE else (7 - piece.row)
+                        if PLAYER_PIECE:
+                            forward_score += row_id * STRATEGY['FORWARD']
+                        else:
+                            forward_score -= row_id * STRATEGY['FORWARD']
 
-	def position_is_open(self, position):
-		return not self.searcher.get_piece_by_position(position)
+                        # and homerow score
+                        if piece.row == 0 and piece.color == WHITE or piece.row == 7 and piece.color == RED:
+                            if PLAYER_PIECE:
+                                home_row_score += FACTOR * STRATEGY['HOME']
+                            else:
+                                home_row_score -= FACTOR * STRATEGY['HOME']
 
-	def create_new_board_from_move(self, move):
-		new_board = deepcopy(self)
+        pawns_score= float("{:.1f}".format(pawns_score))
+        kings_score= float("{:.1f}".format(kings_score))
+        centre16_score= float("{:.1f}".format(centre16_score))
+        forward_score= float("{:.1f}".format(forward_score))
+        home_row_score= float("{:.1f}".format(home_row_score))
+        # print(pawns_score, kings_score, centre16_score, forward_score, home_row_score)
+        return pawns_score + kings_score + centre16_score + forward_score + home_row_score
 
-		if move in self.get_possible_capture_moves():
-			new_board.perform_capture_move(move)
-		else:
-			new_board.perform_positional_move(move)
+    def get_all_pieces(self, color):
+        pieces = []
+        for row in self.board:
+            for piece in row:
+                if piece != 0 and piece.color == color:
+                    pieces.append(piece)
+        return pieces
 
-		return new_board
+    def move(self, piece, row, col):
+        PIECE_IS_PAWN = not piece.king
+        self.board[piece.row][piece.col], self.board[row][col] = self.board[row][col], self.board[piece.row][piece.col]
+        piece.move(row, col)
 
-	def perform_capture_move(self, move):
-		self.previous_move_was_capture = True
-		piece = self.searcher.get_piece_by_position(move[0])
-		originally_was_king = piece.king
-		enemy_piece = piece.capture_move_enemies[move[1]]
-		enemy_piece.capture()
-		self.move_piece(move)
-		further_capture_moves_for_piece = [capture_move for capture_move in self.get_possible_capture_moves() if move[1] == capture_move[0]]
+        # if row == ROWS - 1 or row == 0:
+        if PIECE_IS_PAWN and row in [ROWS - 1, 0]:
+            piece.make_king()
+            if piece.color == WHITE:
+                self.white_kings += 1
+            else:
+                self.red_kings += 1
 
-		if further_capture_moves_for_piece and (originally_was_king == piece.king):
-			self.piece_requiring_further_capture_moves = self.searcher.get_piece_by_position(move[1])
-		else:
-			self.piece_requiring_further_capture_moves = None
-			self.switch_turn()
+    def get_piece(self, row, col):
+        return self.board[row][col]
 
-	def perform_positional_move(self, move):
-		self.previous_move_was_capture = False
-		self.move_piece(move)
-		self.switch_turn()
+    def create_board(self):
+        for row in range(ROWS):
+            self.board.append([])
+            for col in range(COLS):
+                if col % 2 == ((row +  1) % 2):
+                    if row < 3:
+                        self.board[row].append(Piece(row, col, WHITE))
+                    elif row > 4:
+                        self.board[row].append(Piece(row, col, RED))
+                    else:
+                        self.board[row].append(0)
+                else:
+                    self.board[row].append(0)
 
-	def switch_turn(self):
-		self.player_turn = 1 if self.player_turn == 2 else 2
+    def draw(self, win):
+        self.draw_squares(win)
+        for row in range(ROWS):
+            for col in range(COLS):
+                piece = self.board[row][col]
+                if piece != 0:
+                    piece.draw(win)
 
-	def move_piece(self, move):
-		self.searcher.get_piece_by_position(move[0]).move(move[1])
-		self.pieces = sorted(self.pieces, key = lambda piece: piece.position if piece.position else 0)
+    def remove(self, pieces):
+        for piece in pieces:
+            self.board[piece.row][piece.col] = 0
+            if piece != 0:
+                if piece.color == RED:
+                    self.red_left -= 1
+                else:
+                    self.white_left -= 1
 
-	def is_valid_row_and_column(self, row, column):
-		if row < 0 or row >= self.height:
-			return False
+    def winner(self):
+        if self.red_left <= 0:
+            return WHITE
+        elif self.white_left <= 0:
+            return RED
 
-		if column < 0 or column >= self.width:
-			return False
+        return None
 
-		return True
+    def get_valid_moves(self, piece):
+        moves = {}
+        left = piece.col - 1
+        right = piece.col + 1
+        row = piece.row
 
-	def __setattr__(self, name, value):
-		super(Board, self).__setattr__(name, value)
+        if piece.color == RED or piece.king:
+            moves.update(self._traverse_left(row -1, max(row-3, -1), -1, piece.color, left))
+            moves.update(self._traverse_right(row -1, max(row-3, -1), -1, piece.color, right))
+        if piece.color == WHITE or piece.king:
+            moves.update(self._traverse_left(row +1, min(row+3, ROWS), 1, piece.color, left))
+            moves.update(self._traverse_right(row +1, min(row+3, ROWS), 1, piece.color, right))
 
-		if name == 'pieces':
-			[piece.reset_for_new_board() for piece in self.pieces]
+        # pprint.pprint(moves)
+        return moves
 
-			self.searcher.build(self)
+    def _traverse_left(self, start, stop, step, color, left, skipped=[]):
+        moves = {}
+        last = []
+        for r in range(start, stop, step):
+            if left < 0:
+                break
+
+            current = self.board[r][left]
+            if current == 0:
+                if skipped and not last:
+                    break
+                elif skipped:
+                    moves[(r, left)] = last + skipped
+                else:
+                    moves[(r, left)] = last
+
+                if last:
+                    if step == -1:
+                        row = max(r-3, 0)
+                    else:
+                        row = min(r+3, ROWS)
+                    moves.update(self._traverse_left(r+step, row, step, color, left-1,skipped=last))
+                    moves.update(self._traverse_right(r+step, row, step, color, left+1,skipped=last))
+                break
+            elif current.color == color:
+                break
+            else:
+                last = [current]
+
+            left -= 1
+
+        return moves
+
+    def _traverse_right(self, start, stop, step, color, right, skipped=[]):
+        moves = {}
+        last = []
+        for r in range(start, stop, step):
+            if right >= COLS:
+                break
+
+            current = self.board[r][right]
+            if current == 0:
+                if skipped and not last:
+                    break
+                elif skipped:
+                    moves[(r,right)] = last + skipped
+                else:
+                    moves[(r, right)] = last
+
+                if last:
+                    if step == -1:
+                        row = max(r-3, 0)
+                    else:
+                        row = min(r+3, ROWS)
+                    moves.update(self._traverse_left(r+step, row, step, color, right-1,skipped=last))
+                    moves.update(self._traverse_right(r+step, row, step, color, right+1,skipped=last))
+                break
+            elif current.color == color:
+                break
+            else:
+                last = [current]
+
+            right += 1
+
+        return moves

@@ -1,39 +1,72 @@
-from .board import Board
+import pygame
+from .constants import RED, WHITE, BLUE, SQUARE_SIZE
+from checkers.board import Board
 
 class Game:
+    def __init__(self, win):
+        self._init()
+        self.win = win
 
-	def __init__(self):
-		self.board = Board()
-		self.moves = []
-		self.consecutive_noncapture_move_limit = 40
-		self.moves_since_last_capture = 0
+    def update(self):
+        self.board.draw(self.win)
+        self.draw_valid_moves(self.valid_moves)
+        pygame.display.update()
 
-	def move(self, move):
-		if move not in self.get_possible_moves():
-			raise ValueError('The provided move is not possible')
+    def _init(self):
+        self.selected = None
+        self.board = Board()
+        self.turn = RED
+        self.valid_moves = {}
 
-		self.board = self.board.create_new_board_from_move(move)
-		self.moves.append(move)
-		self.moves_since_last_capture = 0 if self.board.previous_move_was_capture else self.moves_since_last_capture + 1
+    def winner(self):
+        return self.board.winner()
 
-		return self
+    def reset(self):
+        self._init()
 
-	def move_limit_reached(self):
-		return self.moves_since_last_capture >= self.consecutive_noncapture_move_limit
+    def select(self, row, col):
+        if self.selected:
+            result = self._move(row, col)
+            if not result:
+                self.selected = None
+                self.select(row, col)
 
-	def is_over(self):
-		return self.move_limit_reached() or not self.get_possible_moves()
+        piece = self.board.get_piece(row, col)
+        if piece != 0 and piece.color == self.turn:
+            self.selected = piece
+            self.valid_moves = self.board.get_valid_moves(piece)
+            return True
 
-	def get_winner(self):
-		if not self.board.count_movable_player_pieces(1):
-			return 2
-		elif not self.board.count_movable_player_pieces(2):
-			return 1
-		else:
-			return None
+        return False
 
-	def get_possible_moves(self):
-		return self.board.get_possible_moves()
+    def _move(self, row, col):
+        piece = self.board.get_piece(row, col)
+        if self.selected and piece == 0 and (row, col) in self.valid_moves:
+            self.board.move(self.selected, row, col)
+            skipped = self.valid_moves[(row, col)]
+            if skipped:
+                self.board.remove(skipped)
+            self.change_turn()
+        else:
+            return False
 
-	def whose_turn(self):
-		return self.board.player_turn
+        return True
+
+    def draw_valid_moves(self, moves):
+        for move in moves:
+            row, col = move
+            pygame.draw.circle(self.win, BLUE, (col * SQUARE_SIZE + SQUARE_SIZE//2, row * SQUARE_SIZE + SQUARE_SIZE//2), 15)
+
+    def change_turn(self):
+        self.valid_moves = {}
+        if self.turn == RED:
+            self.turn = WHITE
+        else:
+            self.turn = RED
+
+    def get_board(self):
+        return self.board
+
+    def ai_move(self, board):
+        self.board = board
+        self.change_turn()

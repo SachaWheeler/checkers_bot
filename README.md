@@ -1,2 +1,2 @@
-# checkers_bot
-# checkers_bot
+# Python-Checkers-AI
+A checkers AI using the minimax algorithm.
