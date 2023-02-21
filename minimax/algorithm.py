@@ -6,33 +6,25 @@ WHITE = (255, 255, 255)
 
 DRAW_ALL_SUB_MOVES = False
 
-def minimax(position, depth, max_player, game, WEIGHTS):
+def minimax(position, depth, max_player, game, WEIGHTS, alpha, beta):
     PLAYER = WEIGHTS['PLAYER']
     OPPONENT = WHITE if PLAYER == RED else RED
     # print(WEIGHTS)
     if depth == 0 or position.winner() != None:
         return position.evaluate(WEIGHTS), position
 
-    if max_player:
-        maxEval = float('-inf')
-        best_move = None
-        for move in get_all_moves(position, PLAYER, game):
-            evaluation = minimax(move, depth-1, False, game, WEIGHTS)[0]
-            maxEval = max(maxEval, evaluation)
-            if maxEval == evaluation:
-                best_move = move
+    (best_val, f) = (float('-inf'), max) if max_player else (float('inf'), min)
+    best_move = None
+    for move in get_all_moves(position, PLAYER, game):
+        evaluation = minimax(move, depth-1, not max_player, game, WEIGHTS, alpha, beta)[0]
+        best_val = f(best_val, evaluation)
+        if best_val == evaluation:
+            best_move = move
+        alpha = f(alpha, best_val)
+        if beta <= alpha:
+            break
 
-        return maxEval, best_move
-    else:
-        minEval = float('inf')
-        best_move = None
-        for move in get_all_moves(position, OPPONENT, game):
-            evaluation = minimax(move, depth-1, True, game, WEIGHTS)[0]
-            minEval = min(minEval, evaluation)
-            if minEval == evaluation:
-                best_move = move
-
-        return minEval, best_move
+    return best_val, best_move
 
 
 def simulate_move(piece, move, board, game, skip):

@@ -1,12 +1,11 @@
-# Assets: https://techwithtim.net/wp-content/uploads/2020/09/assets.zip
 from os import environ, path
 environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1' # remove pygame announcement
 import pygame
 from checkers.constants import (WIDTH, HEIGHT, SQUARE_SIZE, RED, WHITE,
                                 WEIGHTS_KING, WEIGHTS_CENTRE16, WEIGHTS_FORWARD, WEIGHTS_HOME_ROW,
                                 WEIGHTS_DICT,
-                                MINIMAX_DEPTH,
-                                log, log_name, log_game_state, opponent)
+                                MINIMAX_DEPTH)
+from checkers.logging import log, log_name, log_game_state
 from checkers.game import Game
 from minimax.algorithm import minimax
 import pprint
@@ -29,6 +28,7 @@ def main(play_count, WHITE_WEIGHTS, RED_WEIGHTS, f):
 
     log_name(f, play_count, WHITE_WEIGHTS, RED_WEIGHTS)
     turns = 0
+    board_history = []  # create a clean log of board positions
 
     prev_board = None
     while run:
@@ -37,16 +37,23 @@ def main(play_count, WHITE_WEIGHTS, RED_WEIGHTS, f):
         pygame.event.get()
         # each turn
         turns += 1
-        player = "White" if game.turn == WHITE else "Red"
-        opposing = opponent(game.turn)
-        WEIGHTS = WHITE_WEIGHTS if game.turn == WHITE else RED_WEIGHTS
-        value, new_board = minimax(game.get_board(), MINIMAX_DEPTH, True, game, WEIGHTS)
+        (player, opponent, WEIGHTS) = ("White", "Red", WHITE_WEIGHTS) if game.turn == WHITE else ("Red", "White", RED_WEIGHTS)
+
+        alpha, beta = float('-inf'), float('inf')
+        value, new_board = minimax(game.get_board(), MINIMAX_DEPTH, True, game, WEIGHTS, alpha, beta)
 
         if new_board is None:
             # game is over for player with no available moves
-            log(f, f"{opposing} won after {turns} turns.\n")
+            log(f, f"{opponent} won after {turns} turns.\n")
             run = False
             break
+
+        board_str = new_board.to_string()
+        if board_str in board_history:  # we've been here before
+            log(f, f"game ended in a draw\n")
+            run = False
+            break
+        board_history.append(board_str)
 
         if new_board is not None:
             log_game_state(f, game.turn, new_board)
@@ -56,7 +63,7 @@ def main(play_count, WHITE_WEIGHTS, RED_WEIGHTS, f):
         prev_board = new_board
 
         if game.winner() != None:
-            log(f, f"{opposing} won after {turns} turns.\n")
+            log(f, f"{opponent} won after {turns} turns.\n")
             run = False
             break
 

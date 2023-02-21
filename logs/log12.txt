@@ -1,0 +1,4 @@
+1 - WHITE:K_1.5|C_0|F_0|H_0_vs_RED:K_4.5|C_4.5|F_2.0|H_1.0
+Red move: R: 12 P, 0 K - W: 12 P, 0 K
+White move: R: 12 P, 0 K - W: 12 P, 0 K
+Red move: R: 12 P, 0 K - W: 12 P, 0 K

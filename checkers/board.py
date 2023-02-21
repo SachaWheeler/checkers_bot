@@ -11,6 +11,21 @@ class Board:
         self.red_kings = self.white_kings = 0
         self.create_board()
 
+    def to_string(self):
+        output = ''
+        for row in self.board:  # position scores
+            for piece in row:
+                # print(piece)
+                if piece == 0:
+                    output += '0'
+                else:
+                    player = 'r' if piece.color == RED else 'w'
+                    if piece.king:
+                        player = player.upper()
+                    output += player
+
+        return output
+
     def draw_squares(self, win):
         win.fill(BLACK)
         for row in range(ROWS):
