@@ -12,6 +12,7 @@ import pprint
 
 FPS = 60
 
+pygame.init()
 pygame.display.set_caption('Checkers')
 
 def get_row_col_from_mouse(pos):
@@ -34,7 +35,7 @@ def main(play_count, WHITE_WEIGHTS, RED_WEIGHTS, f):
     while run:
         clock.tick(FPS)
 
-        pygame.event.get()
+        # pygame.event.get()
         # each turn
         turns += 1
         (player, opponent, WEIGHTS) = ("White", "Red", WHITE_WEIGHTS) if game.turn == WHITE else ("Red", "White", RED_WEIGHTS)
@@ -67,15 +68,17 @@ def main(play_count, WHITE_WEIGHTS, RED_WEIGHTS, f):
             run = False
             break
 
-        if RED_WEIGHTS is None:  # human opponent
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    run = False
+        #if RED_WEIGHTS is None:  # human opponent
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
 
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    pos = pygame.mouse.get_pos()
-                    row, col = get_row_col_from_mouse(pos)
-                    game.select(row, col)
+        """
+        if event.type == pygame.MOUSEBUTTONDOWN:
+        pos = pygame.mouse.get_pos()
+        row, col = get_row_col_from_mouse(pos)
+        game.select(row, col)
+        """
 
         game.update()
 
@@ -93,6 +96,12 @@ while path.exists("logs/log%s.txt" % i):
 
 play_count = 0
 with open("logs/log%s.txt" % i, 'w') as f:
+    if True:  # WHITE against WHITE to test available moves for kings
+        RED_WEIGHTS = WHITE_WEIGHTS.copy()
+        RED_WEIGHTS['PLAYER'] = RED
+        main(play_count, WHITE_WEIGHTS, RED_WEIGHTS, f)
+        exit(0)
+
     for KING_WEIGHT in WEIGHTS_KING:
         for CENTRE_WEIGHT in WEIGHTS_CENTRE16:
             for FORWARD_WEIGHT in WEIGHTS_FORWARD:

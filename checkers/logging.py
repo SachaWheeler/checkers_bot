@@ -21,7 +21,7 @@ def log_game_state(f, player, board):
     PLAYER = "Red" if player == RED else "White"
     game_state = (
             f"{PLAYER} move: "
-            f"R: {board.red_left - board.red_kings},{board.red_kings} - "
-            f"W: {board.white_left - board.white_kings},{board.white_kings}\n"
+            f"R: {board.red_left},{board.red_kings} - "
+            f"W: {board.white_left},{board.white_kings}\n"
             )
     log(f, game_state)

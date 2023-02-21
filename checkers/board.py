@@ -216,7 +216,7 @@ class Board:
                 if skipped and not last:
                     break
                 elif skipped:
-                    moves[(r,right)] = last + skipped
+                    moves[(r, right)] = last + skipped
                 else:
                     moves[(r, right)] = last
 
