@@ -56,11 +56,11 @@ class Board:
         pawns_score *= FACTOR
         kings_score *= FACTOR
 
-        pawns_score= float("{:.1f}".format(pawns_score))
-        kings_score= float("{:.1f}".format(kings_score))
-        centre16_score= float("{:.1f}".format(centre16_score))
-        forward_score= float("{:.1f}".format(forward_score))
-        home_row_score= float("{:.1f}".format(home_row_score))
+        pawns_score = float("{:.1f}".format(pawns_score))
+        kings_score = float("{:.1f}".format(kings_score))
+        centre16_score = float("{:.1f}".format(centre16_score))
+        forward_score = float("{:.1f}".format(forward_score))
+        home_row_score = float("{:.1f}".format(home_row_score))
         # print(pawns_score, kings_score, centre16_score, forward_score, home_row_score)
         return pawns_score + kings_score + centre16_score + forward_score + home_row_score
 
@@ -73,13 +73,11 @@ class Board:
         return pieces
 
     def move(self, piece, row, col):
-        # print(f"moving {piece} to ({row}, {col})")
-        PIECE_IS_PAWN = not piece.king
         self.board[piece.row][piece.col], self.board[row][col] = self.board[row][col], self.board[piece.row][piece.col]
         piece.move(row, col)
 
         # if row == ROWS - 1 or row == 0:
-        if PIECE_IS_PAWN and row in [ROWS - 1, 0]:
+        if not piece.king and row in [ROWS - 1, 0]:
             piece.make_king()
             if piece.color == WHITE:
                 self.white_kings += 1

@@ -5,6 +5,7 @@ import pygame
 from checkers.constants import (WIDTH, HEIGHT, SQUARE_SIZE, RED, WHITE,
                                 WEIGHTS_KING, WEIGHTS_CENTRE16, WEIGHTS_FORWARD, WEIGHTS_HOME_ROW,
                                 WEIGHTS_DICT,
+                                MINIMAX_DEPTH,
                                 log, log_name, log_game_state, opponent)
 from checkers.game import Game
 from minimax.algorithm import minimax
@@ -39,7 +40,7 @@ def main(play_count, WHITE_WEIGHTS, RED_WEIGHTS, f):
         player = "White" if game.turn == WHITE else "Red"
         opposing = opponent(game.turn)
         WEIGHTS = WHITE_WEIGHTS if game.turn == WHITE else RED_WEIGHTS
-        value, new_board = minimax(game.get_board(), 4, True, game, WEIGHTS)
+        value, new_board = minimax(game.get_board(), MINIMAX_DEPTH, True, game, WEIGHTS)
 
         if new_board is None:
             # game is over for player with no available moves
