@@ -1,5 +1,6 @@
 import pygame
 import random
+import csv
 
 
 WIDTH, HEIGHT = 800, 900
@@ -19,20 +20,18 @@ MINIMAX_DEPTH = 3
 
 CENTRE_16 = [2, 3, 4, 5]
 
-WEIGHTS_KING = [int(x/2 * 10) * 0.1 for x in range(1, 10)]  # 3 - [2.0, 2.5, 3.0, 3.5, 4.0, 4.5]
 """
+WEIGHTS_KING = [int(int(x/2 * 10) * 0.1)/10 for x in range(1, 11)]  # [0.0, 0.1, 0.1, 0.2, 0.2, 0.3, 0.3, 0.4, 0.4, 0.5]
 WEIGHTS_CENTRE16 = [int(int(x/2 * 10) * 0.1)/10 for x in range(1, 11)]  # 0.5 [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 WEIGHTS_FORWARD = [int(int(x/2 * 10) * 0.1)/10 for x in range(1, 11)]  # 0.3 [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 WEIGHTS_HOME_ROW = [int(int(x * 10) * 0.1)/10 for x in range(1, 11)]  # 1 [0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0]
 """
-WEIGHTS_CENTRE16 = WEIGHTS_KING.copy()
-WEIGHTS_FORWARD = WEIGHTS_KING.copy()
-WEIGHTS_HOME_ROW = WEIGHTS_KING.copy()
-
-random.shuffle(WEIGHTS_KING)
-random.shuffle(WEIGHTS_CENTRE16)
-random.shuffle(WEIGHTS_FORWARD)
-random.shuffle(WEIGHTS_HOME_ROW)
+# WEIGHTS = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+WEIGHTS = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+WEIGHTS_KING = WEIGHTS.copy()
+WEIGHTS_CENTRE16 = WEIGHTS.copy()
+WEIGHTS_FORWARD = WEIGHTS.copy()
+WEIGHTS_HOME_ROW = WEIGHTS.copy()
 
 WEIGHTS_DICT = {
     'KING': 0,
@@ -40,3 +39,47 @@ WEIGHTS_DICT = {
     'FORWARD': 0,
     'HOME': 0
 }
+
+def array_to_weights(variables, player):
+    (K, C, F, H) = variables
+    return {
+            'KING': K,
+            'CENTRE': C,
+            'FORWARD': F,
+            'HOME': H,
+            'PLAYER': player
+            }
+
+def log_result(SCORE, results_file):
+    """
+    {'LOSE_K': 0,
+    'LOSE_P': 1,
+    'RC_W': 0.0,
+    'RF_W': 0.0,
+    'RH_W': 0.2,
+    'RK_W': 0.0,
+    'R_K': 0,
+    'R_P': 1,
+    'WC_W': 0.0,
+    'WF_W': 0.0,
+    'WH_W': 0.0,
+    'WINNER': 'White',
+    'WIN_K': 1,
+    'WIN_P': 6,
+    'WK_W': 0.0,
+    'W_K': 1,
+    'W_P': 6,
+    'count': 1,
+    'turns': 49}
+    """
+
+    with open(results_file, "a") as csv_file:
+        # myfile.write("appended text")
+        csv_file.write(f"{SCORE['count']}, "
+                        f"{SCORE['RK_W']}, {SCORE['RC_W']}, {SCORE['RF_W']}, {SCORE['RH_W']}, "
+                        f"{SCORE['WK_W']}, {SCORE['WC_W']}, {SCORE['WF_W']}, {SCORE['WH_W']}, "
+                        f"{SCORE['WINNER']}, "
+                        f"{SCORE['WIN_P']}, {SCORE['WIN_K']}, "
+                        f"{SCORE['LOSE_P']}, {SCORE['LOSE_K']}, "
+                        f"{SCORE['turns']}\n")
+
