@@ -1,15 +1,33 @@
 import pygame
-from .constants import RED, WHITE, BLUE, SQUARE_SIZE
+from .constants import RED, WHITE, BLUE, SQUARE_SIZE, WIDTH
 from checkers.board import Board
 
 class Game:
-    def __init__(self, win):
+    def __init__(self, win, titles):
         self._init()
         self.win = win
+        self.titles = titles  # [white, red]
 
     def update(self):
         self.board.draw(self.win)
         self.draw_valid_moves(self.valid_moves)
+
+        title_font = pygame.font.Font(None, 20)
+        text_font = pygame.font.Font(None, 24)
+
+        white_status = f"White: {self.board.white_left},{self.board.white_kings}"
+        red_status = f"Red  : {self.board.red_left},{self.board.red_kings}"
+
+        white_desc_text = title_font.render(self.titles[0], True, WHITE, (0, 0, 0))
+        red_desc_text = title_font.render(self.titles[1], True, WHITE, (0, 0, 0))
+
+        white_status_text = text_font.render(white_status, True, WHITE, (0, 0, 0))
+        red_status_text = text_font.render(red_status, True, WHITE, (0, 0, 0))
+
+        self.win.blit(red_desc_text, (20 , 820))
+        self.win.blit(white_desc_text, (WIDTH // 2 + 20 , 820))
+        self.win.blit(red_status_text, (20 , 840))
+        self.win.blit(white_status_text, (WIDTH // 2 + 20 , 840))
         pygame.display.update()
 
     def _init(self):

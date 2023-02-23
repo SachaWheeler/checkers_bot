@@ -18,7 +18,7 @@ GREY = (128,128,128)
 CROWN = pygame.transform.scale(pygame.image.load('assets/crown.png'), (44, 25))
 
 ALPHA, BETA = float('-inf'), float('inf')
-MINIMAX_DEPTH = 4
+MINIMAX_DEPTH = 3
 DRAW_ALL_SUB_MOVES = False
 
 CENTRE_16 = [2, 3, 4, 5]

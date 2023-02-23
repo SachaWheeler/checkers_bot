@@ -3,21 +3,18 @@ environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1' # remove pygame announcement
 import pygame
 import time
 import os
-from checkers.constants import (WIDTH, HEIGHT, SQUARE_SIZE, RED, WHITE,
+from checkers.constants import (WIDTH, HEIGHT, SQUARE_SIZE, RED, WHITE, BLUE, GREY,
                                 WEIGHTS, WEIGHTS_KING, WEIGHTS_CENTRE16, WEIGHTS_FORWARD, WEIGHTS_HOME_ROW,
                                 WEIGHTS_DICT, array_to_weights, log_result,
                                 get_score,
                                 MINIMAX_DEPTH, ALPHA, BETA)
-from checkers.logging import log, log_name, log_game_state
+from checkers.logging import log, log_name, log_game_state, get_game_str
 from checkers.game import Game
 from minimax.algorithm import minimax
 import pprint
 import itertools
 
 FPS = 60
-
-pygame.init()
-pygame.display.set_caption('Checkers')
 
 def get_row_col_from_mouse(pos):
     x, y = pos
@@ -27,9 +24,19 @@ def get_row_col_from_mouse(pos):
 
 def main(play_count, WHITE_WEIGHTS, RED_WEIGHTS, f):
     run = True
+
+    pygame.init()
+    # all_fonts = pygame.font.get_fonts()
+    # pprint.pprint(all_fonts)
+    # exit(0)
+    white_title = get_game_str(WHITE_WEIGHTS)
+    red_title = get_game_str(RED_WEIGHTS)
+    pygame.display.set_caption('Checkers')
     clock = pygame.time.Clock()
+
     WIN = pygame.display.set_mode((WIDTH, HEIGHT))
-    game = Game(WIN)
+
+    game = Game(WIN, [white_title, red_title])
     GAME_SCORE = get_score(WHITE_WEIGHTS, RED_WEIGHTS)
     GAME_SCORE['count'] = play_count
 
@@ -97,13 +104,14 @@ def main(play_count, WHITE_WEIGHTS, RED_WEIGHTS, f):
         game.select(row, col)
         """
 
+        # pygame.display.flip()
         game.update()
         # pygame.image.save(WIN, f"screens/{play_count}-{turns}.jpeg")
     # print("end of game triggered")
     GAME_SCORE['turns'] = turns
     log_result(GAME_SCORE, results_file)
     # save screen
-    pygame.image.save(WIN, f"screens/{play_count}-{GAME_SCORE['WINNER']}.jpeg")
+    pygame.image.save(WIN, f"screens/{play_count:04}-{GAME_SCORE['WINNER']}.jpeg")
 
     pygame.quit()
     # exit(0)

@@ -17,6 +17,13 @@ def log_name(f, playcount, WHITE_WEIGHTS, RED_WEIGHTS):
              "\n")
      log(f, game_title)
 
+def get_game_str(WEIGHTS):
+    return (
+            f"Kings: {WEIGHTS['KING']}, "
+            f"Centre: {WEIGHTS['CENTRE']}, "
+            f"Forward: {WEIGHTS['FORWARD']}, "
+            f"Home: {WEIGHTS['HOME']}")
+
 def log_game_state(f, player, board):
     PLAYER = "Red" if player == RED else "White"
     game_state = (
