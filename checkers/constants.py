@@ -1,6 +1,7 @@
 import pygame
 import random
 import csv
+import pprint
 
 
 WIDTH, HEIGHT = 800, 900
@@ -52,34 +53,30 @@ def array_to_weights(variables, player):
 
 def log_result(SCORE, results_file):
     """
-    {'LOSE_K': 0,
-    'LOSE_P': 1,
+    {
+    'count': 1,
+    'RK_W': 0.0,
     'RC_W': 0.0,
     'RF_W': 0.0,
     'RH_W': 0.2,
-    'RK_W': 0.0,
-    'R_K': 0,
-    'R_P': 1,
+    'WK_W': 0.0,
     'WC_W': 0.0,
     'WF_W': 0.0,
     'WH_W': 0.0,
     'WINNER': 'White',
-    'WIN_K': 1,
-    'WIN_P': 6,
-    'WK_W': 0.0,
-    'W_K': 1,
     'W_P': 6,
-    'count': 1,
+    'W_K': 1,
+    'R_P': 1,
+    'R_K': 0,
     'turns': 49}
     """
 
     with open(results_file, "a") as csv_file:
-        # myfile.write("appended text")
         csv_file.write(f"{SCORE['count']}, "
                         f"{SCORE['RK_W']}, {SCORE['RC_W']}, {SCORE['RF_W']}, {SCORE['RH_W']}, "
                         f"{SCORE['WK_W']}, {SCORE['WC_W']}, {SCORE['WF_W']}, {SCORE['WH_W']}, "
                         f"{SCORE['WINNER']}, "
-                        f"{SCORE['WIN_P']}, {SCORE['WIN_K']}, "
-                        f"{SCORE['LOSE_P']}, {SCORE['LOSE_K']}, "
+                        f"{SCORE['W_P']}, {SCORE['W_K']}, "
+                        f"{SCORE['R_P']}, {SCORE['R_K']}, "
                         f"{SCORE['turns']}\n")
 

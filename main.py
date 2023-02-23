@@ -67,9 +67,9 @@ def main(play_count, WHITE_WEIGHTS, RED_WEIGHTS, f):
         alpha, beta = float('-inf'), float('inf')
         value, new_board = minimax(game.get_board(), MINIMAX_DEPTH, True, game, WEIGHTS, alpha, beta)
         if new_board:
-            GAME_SCORE['R_P'] = new_board.red_left - new_board.red_kings
+            GAME_SCORE['R_P'] = max(new_board.red_left - new_board.red_kings, 0)
             GAME_SCORE['R_K'] = new_board.red_kings
-            GAME_SCORE['W_P'] = new_board.white_left - new_board.white_kings
+            GAME_SCORE['W_P'] = max(new_board.white_left - new_board.white_kings, 0)
             GAME_SCORE['W_K'] = new_board.white_kings
 
 
@@ -84,6 +84,7 @@ def main(play_count, WHITE_WEIGHTS, RED_WEIGHTS, f):
         board_str = new_board.to_string()
         if board_str in board_history:  # we've been here before
             log(f, f"game ended in a draw\n")
+            GAME_SCORE['turns'] = turns
             run = False
             break
         board_history.append(board_str)
@@ -97,6 +98,8 @@ def main(play_count, WHITE_WEIGHTS, RED_WEIGHTS, f):
 
         if game.winner() != None:
             log(f, f"{opponent} won after {turns} turns.\n")
+            GAME_SCORE['WINNER'] = opponent
+            GAME_SCORE['turns'] = turns
             run = False
             break
 
@@ -114,13 +117,11 @@ def main(play_count, WHITE_WEIGHTS, RED_WEIGHTS, f):
 
         game.update()
     # print("end of game triggered")
-    (winner, loser) = 'W', 'R' if GAME_SCORE['WINNER'] == 'White' else ('R', 'W')
-    GAME_SCORE['WIN_K'] = GAME_SCORE[f'{winner}_K']
-    GAME_SCORE['WIN_P'] = GAME_SCORE[f'{winner}_P']
-    GAME_SCORE['LOSE_K'] = GAME_SCORE[f'{loser}_K']
-    GAME_SCORE['LOSE_P'] = GAME_SCORE[f'{loser}_P']
+    GAME_SCORE['turns'] = turns
     log_result(GAME_SCORE, results_file)
-    exit(0)
+    # save screen
+    pygame.image.save(WIN, f"screens/{play_count}-{GAME_SCORE['WINNER']}.jpeg")
+
 
     pygame.quit()
 
@@ -141,12 +142,12 @@ with open("logs/log%s.txt" % i, 'w') as f:
     all_games = list(itertools.product(*strategies))
 
     timestr = time.strftime("%Y%m%d-%H%M%S")
-    results_file = f"results/{timestr}results.csv"
+    results_file = f"results/{timestr}-results.csv"
     if not os.path.isfile(results_file):
         with open(results_file, "a") as csv_file:
             csv_file.write("count, RK_W, RC_W, RF_W, RH_W, "
                     "WK_W, WC_W, WF_W, WH_W,"
-                    "Winner, WIN_P, WIN_K, LOSE_P, LOSE_K, turns\n")
+                    "Winner, W_P, W_K, R_P, R_K, turns\n")
 
     for x, y in itertools.permutations(all_games, 2):
         for X, Y in itertools.permutations([x, y], 2):
