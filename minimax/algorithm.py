@@ -1,10 +1,6 @@
 from copy import deepcopy
 import pygame
-
-RED = (255,0,0)
-WHITE = (255, 255, 255)
-
-DRAW_ALL_SUB_MOVES = False
+from checkers.constants import ALPHA, BETA, RED, WHITE, DRAW_ALL_SUB_MOVES
 
 def minimax(position, depth, max_player, game, WEIGHTS, alpha, beta):
     PLAYER = WEIGHTS['PLAYER']
@@ -13,8 +9,9 @@ def minimax(position, depth, max_player, game, WEIGHTS, alpha, beta):
     if depth == 0 or position.winner() != None:
         return position.evaluate(WEIGHTS), position
 
-    (best_val, f) = (float('-inf'), max) if max_player else (float('inf'), min)
+    (best_val, f) = (ALPHA, max) if max_player else (BETA, min)
     best_move = None
+
     for move in get_all_moves(position, PLAYER, game):
         evaluation = minimax(move, depth-1, not max_player, game, WEIGHTS, alpha, beta)[0]
         best_val = f(best_val, evaluation)

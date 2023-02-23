@@ -17,16 +17,12 @@ GREY = (128,128,128)
 
 CROWN = pygame.transform.scale(pygame.image.load('assets/crown.png'), (44, 25))
 
-MINIMAX_DEPTH = 3
+ALPHA, BETA = float('-inf'), float('inf')
+MINIMAX_DEPTH = 4
+DRAW_ALL_SUB_MOVES = False
 
 CENTRE_16 = [2, 3, 4, 5]
 
-"""
-WEIGHTS_KING = [int(int(x/2 * 10) * 0.1)/10 for x in range(1, 11)]  # [0.0, 0.1, 0.1, 0.2, 0.2, 0.3, 0.3, 0.4, 0.4, 0.5]
-WEIGHTS_CENTRE16 = [int(int(x/2 * 10) * 0.1)/10 for x in range(1, 11)]  # 0.5 [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-WEIGHTS_FORWARD = [int(int(x/2 * 10) * 0.1)/10 for x in range(1, 11)]  # 0.3 [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-WEIGHTS_HOME_ROW = [int(int(x * 10) * 0.1)/10 for x in range(1, 11)]  # 1 [0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0]
-"""
 # WEIGHTS = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
 WEIGHTS = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
 WEIGHTS_KING = WEIGHTS.copy()
@@ -79,4 +75,28 @@ def log_result(SCORE, results_file):
                         f"{SCORE['W_P']}, {SCORE['W_K']}, "
                         f"{SCORE['R_P']}, {SCORE['R_K']}, "
                         f"{SCORE['turns']}\n")
+
+
+def get_score(WHITE_WEIGHTS, RED_WEIGHTS):
+    return {
+        # 'count': play_count,
+        'RK_W': RED_WEIGHTS['KING'],
+        'RC_W': RED_WEIGHTS['CENTRE'],
+        'RF_W': RED_WEIGHTS['FORWARD'],
+        'RH_W': RED_WEIGHTS['HOME'],
+        'WK_W': WHITE_WEIGHTS['KING'],
+        'WC_W': WHITE_WEIGHTS['CENTRE'],
+        'WF_W': WHITE_WEIGHTS['FORWARD'],
+        'WH_W': WHITE_WEIGHTS['HOME'],
+        'R_P': 0,
+        'R_K': 0,
+        'W_P': 0,
+        'W_K': 0,
+        'WINNER': None,
+        'WIN_P': 0,
+        'WIN_K': 0,
+        'LOSE_P': 0,
+        'LOSE_K': 0,
+        'turns': 0
+    }
 

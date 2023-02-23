@@ -6,7 +6,8 @@ import os
 from checkers.constants import (WIDTH, HEIGHT, SQUARE_SIZE, RED, WHITE,
                                 WEIGHTS, WEIGHTS_KING, WEIGHTS_CENTRE16, WEIGHTS_FORWARD, WEIGHTS_HOME_ROW,
                                 WEIGHTS_DICT, array_to_weights, log_result,
-                                MINIMAX_DEPTH)
+                                get_score,
+                                MINIMAX_DEPTH, ALPHA, BETA)
 from checkers.logging import log, log_name, log_game_state
 from checkers.game import Game
 from minimax.algorithm import minimax
@@ -29,27 +30,8 @@ def main(play_count, WHITE_WEIGHTS, RED_WEIGHTS, f):
     clock = pygame.time.Clock()
     WIN = pygame.display.set_mode((WIDTH, HEIGHT))
     game = Game(WIN)
-    GAME_SCORE = {
-        'count': play_count,
-        'RK_W': RED_WEIGHTS['KING'],
-        'RC_W': RED_WEIGHTS['CENTRE'],
-        'RF_W': RED_WEIGHTS['FORWARD'],
-        'RH_W': RED_WEIGHTS['HOME'],
-        'WK_W': WHITE_WEIGHTS['KING'],
-        'WC_W': WHITE_WEIGHTS['CENTRE'],
-        'WF_W': WHITE_WEIGHTS['FORWARD'],
-        'WH_W': WHITE_WEIGHTS['HOME'],
-        'R_P': 0,
-        'R_K': 0,
-        'W_P': 0,
-        'W_K': 0,
-        'WINNER': None,
-        'WIN_P': 0,
-        'WIN_K': 0,
-        'LOSE_P': 0,
-        'LOSE_K': 0,
-        'turns': 0,
-        }
+    GAME_SCORE = get_score(WHITE_WEIGHTS, RED_WEIGHTS)
+    GAME_SCORE['count'] = play_count
 
     log_name(f, play_count, WHITE_WEIGHTS, RED_WEIGHTS)
     turns = 0
@@ -59,13 +41,13 @@ def main(play_count, WHITE_WEIGHTS, RED_WEIGHTS, f):
     while run:
         clock.tick(FPS)
 
-        # pygame.event.get()
         # each turn
         turns += 1
         (player, opponent, WEIGHTS) = ("White", "Red", WHITE_WEIGHTS) if game.turn == WHITE else ("Red", "White", RED_WEIGHTS)
 
-        alpha, beta = float('-inf'), float('inf')
-        value, new_board = minimax(game.get_board(), MINIMAX_DEPTH, True, game, WEIGHTS, alpha, beta)
+        value, new_board = minimax(game.get_board(), MINIMAX_DEPTH, True,
+                                   game, WEIGHTS, ALPHA, BETA)
+
         if new_board:
             GAME_SCORE['R_P'] = max(new_board.red_left - new_board.red_kings, 0)
             GAME_SCORE['R_K'] = new_board.red_kings
@@ -97,8 +79,8 @@ def main(play_count, WHITE_WEIGHTS, RED_WEIGHTS, f):
         prev_board = new_board
 
         if game.winner() != None:
-            log(f, f"{opponent} won after {turns} turns.\n")
-            GAME_SCORE['WINNER'] = opponent
+            log(f, f"{player} won after {turns} turns.\n")
+            GAME_SCORE['WINNER'] = player
             GAME_SCORE['turns'] = turns
             run = False
             break
@@ -116,20 +98,15 @@ def main(play_count, WHITE_WEIGHTS, RED_WEIGHTS, f):
         """
 
         game.update()
+        # pygame.image.save(WIN, f"screens/{play_count}-{turns}.jpeg")
     # print("end of game triggered")
     GAME_SCORE['turns'] = turns
     log_result(GAME_SCORE, results_file)
     # save screen
     pygame.image.save(WIN, f"screens/{play_count}-{GAME_SCORE['WINNER']}.jpeg")
 
-
     pygame.quit()
-
-WHITE_WEIGHTS = WEIGHTS_DICT.copy()
-WHITE_WEIGHTS['PLAYER'] = WHITE
-WHITE_WEIGHTS['KING'] = 1.5
-
-RED_WEIGHTS = WEIGHTS_DICT.copy()
+    # exit(0)
 
 i = 0
 while path.exists("logs/log%s.txt" % i):
