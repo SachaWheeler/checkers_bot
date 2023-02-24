@@ -5,10 +5,9 @@ import time
 import os
 from checkers.constants import (WIDTH, HEIGHT, SQUARE_SIZE, RED, WHITE, BLUE, GREY,
                                 WEIGHTS, WEIGHTS_KING, WEIGHTS_CENTRE16, WEIGHTS_FORWARD, WEIGHTS_HOME_ROW,
-                                WEIGHTS_DICT, array_to_weights, log_result,
-                                get_score,
                                 MINIMAX_DEPTH, ALPHA, BETA)
-from checkers.logging import log, log_name, log_game_state, get_game_str
+from checkers.functions import array_to_weights, get_score, get_game_str
+from checkers.logging import log, log_name, log_game_state, log_result
 from checkers.game import Game
 from minimax.algorithm import minimax
 import pprint
